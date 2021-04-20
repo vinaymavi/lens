@@ -62,16 +62,52 @@ export enum PodStatus {
   EVICTED = "Evicted"
 }
 
+export enum ContainerPortProtocol {
+  UDP = "UDP",
+  TCP = "TCP",
+  SCTP = "SCTP",
+}
+
+// Spec: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/#containerport-v1-core
+interface ContainerPort {
+  /**
+   * Number of port to expose on the pod's IP address.
+   * This must be a valid port number, 0 < x < 65536.
+   */
+  containerPort: number;
+
+  /**
+   * What host IP to bind the external port to.
+   */
+  hostIP?: string;
+
+  /**
+   * Number of port to expose on the host.
+   * If specified, this must be a valid port number, 0 < x < 65536.
+   * If HostNetwork is specified, this must match ContainerPort.
+   * Most containers do not need this.
+   */
+  hostPort?: number;
+
+  /**
+   * If specified, this must be an `IANA_SVC_NAME` and unique within the pod.
+   * Each named port in a pod must have a unique name.
+   * Name for the port that can be referred to by services.
+   */
+  name?: string;
+
+  /**
+   * Protocol for port.
+   */
+  protocol?: ContainerPortProtocol;
+}
+
 export interface IPodContainer {
   name: string;
   image: string;
   command?: string[];
   args?: string[];
-  ports?: {
-    name?: string;
-    containerPort: number;
-    protocol: string;
-  }[];
+  ports?: ContainerPort[];
   resources?: {
     limits: {
       cpu: string;
@@ -121,10 +157,10 @@ export interface IPodContainer {
 
 interface IContainerProbe {
   httpGet?: {
+    host?: string;
     path?: string;
     port: number;
     scheme: string;
-    host?: string;
   };
   exec?: {
     command: string[];
@@ -139,46 +175,76 @@ interface IContainerProbe {
   failureThreshold?: number;
 }
 
+interface StateRunning {
+  startedAt: string;
+}
+
+interface StateWaiting {
+  reason: string;
+  message: string;
+}
+
+interface StateTerminating {
+  startedAt: string;
+  finishedAt: string;
+  exitCode: number;
+  reason: string;
+}
+
+interface PodState {
+  [index: string]: object;
+  running?: StateRunning;
+  waiting?: StateWaiting;
+  terminated?: StateTerminating;
+}
+
 export interface IPodContainerStatus {
   name: string;
-  state?: {
-    [index: string]: object;
-    running?: {
-      startedAt: string;
-    };
-    waiting?: {
-      reason: string;
-      message: string;
-    };
-    terminated?: {
-      startedAt: string;
-      finishedAt: string;
-      exitCode: number;
-      reason: string;
-    };
-  };
-  lastState?: {
-    [index: string]: object;
-    running?: {
-      startedAt: string;
-    };
-    waiting?: {
-      reason: string;
-      message: string;
-    };
-    terminated?: {
-      startedAt: string;
-      finishedAt: string;
-      exitCode: number;
-      reason: string;
-    };
-  };
+  state?: PodState;
+  lastState?: PodState;
   ready: boolean;
   restartCount: number;
   image: string;
   imageID: string;
   containerID?: string;
   started?: boolean;
+}
+
+interface ImagePullSecret {
+  name: string;
+}
+
+interface PodToleration {
+  key?: string;
+  operator?: string;
+  effect?: string;
+  tolerationSeconds?: number;
+  value?: string;
+}
+
+interface PodVolume {
+  name: string;
+  persistentVolumeClaim: {
+    claimName: string;
+  };
+  emptyDir: {
+    medium?: string;
+    sizeLimit?: string;
+  };
+  configMap: {
+    name: string;
+  };
+  secret: {
+    secretName: string;
+    defaultMode: number;
+  };
+}
+
+interface PodCondition {
+  type: string;
+  status: string;
+  lastProbeTime: number;
+  lastTransitionTime: string;
 }
 
 @autobind()
@@ -188,23 +254,7 @@ export class Pod extends WorkloadKubeObject {
   static apiBase = "/api/v1/pods";
 
   spec: {
-    volumes?: {
-      name: string;
-      persistentVolumeClaim: {
-        claimName: string;
-      };
-      emptyDir: {
-        medium?: string;
-        sizeLimit?: string;
-      };
-      configMap: {
-        name: string;
-      };
-      secret: {
-        secretName: string;
-        defaultMode: number;
-      };
-    }[];
+    volumes?: PodVolume[];
     initContainers: IPodContainer[];
     containers: IPodContainer[];
     restartPolicy?: string;
@@ -217,13 +267,9 @@ export class Pod extends WorkloadKubeObject {
     priority?: number;
     priorityClassName?: string;
     nodeName?: string;
-    nodeSelector?: {
-      [selector: string]: string;
-    };
+    nodeSelector?: Record<string, string>;
     securityContext?: {};
-    imagePullSecrets?: {
-      name: string;
-    }[];
+    imagePullSecrets?: ImagePullSecret[];
     hostNetwork?: boolean;
     hostPID?: boolean;
     hostIPC?: boolean;
@@ -231,13 +277,7 @@ export class Pod extends WorkloadKubeObject {
     hostname?: string;
     subdomain?: string;
     schedulerName?: string;
-    tolerations?: {
-      key?: string;
-      operator?: string;
-      effect?: string;
-      tolerationSeconds?: number;
-      value?: string;
-    }[];
+    tolerations?: PodToleration[];
     hostAliases?: {
       ip: string;
       hostnames: string[];
@@ -246,12 +286,7 @@ export class Pod extends WorkloadKubeObject {
   };
   status?: {
     phase: string;
-    conditions: {
-      type: string;
-      status: string;
-      lastProbeTime: number;
-      lastTransitionTime: string;
-    }[];
+    conditions: PodCondition[];
     hostIP: string;
     podIP: string;
     startTime: string;
