@@ -183,7 +183,7 @@ export class Catalog extends React.Component<Props> {
             </MenuItem>
           ))
         }
-        <MenuItem key="add-to-hotbar" onClick={() => this.addToHotbar(item) }>
+        <MenuItem key="add-to-hotbar" onClick={() => this.addToHotbar(item)}>
           Pin to Hotbar
         </MenuItem>
       </MenuActions>
@@ -211,12 +211,12 @@ export class Catalog extends React.Component<Props> {
         store={this.catalogEntityStore}
         tableId="catalog-items"
         sortingCallbacks={{
-          [sortBy.name]: (item: CatalogEntityItem) => item.name,
-          [sortBy.source]: (item: CatalogEntityItem) => item.source,
-          [sortBy.status]: (item: CatalogEntityItem) => item.phase,
+          [sortBy.name]: entity => entity.name,
+          [sortBy.source]: entity => entity.source,
+          [sortBy.status]: entity => entity.phase,
         }}
         searchFilters={[
-          (entity: CatalogEntityItem) => entity.searchFields,
+          entity => entity.searchFields,
         ]}
         renderTableHeader={[
           { title: "", className: css.iconCell },
@@ -225,14 +225,14 @@ export class Catalog extends React.Component<Props> {
           { title: "Labels", className: css.labelsCell },
           { title: "Status", className: css.statusCell, sortBy: sortBy.status },
         ]}
-        renderTableContents={(item: CatalogEntityItem) => [
-          this.renderIcon(item),
-          item.name,
-          item.source,
-          item.labels.map((label) => <Badge key={label} label={label} title={label} />),
-          { title: item.phase, className: cssNames(css[item.phase]) }
+        renderTableContents={entity => [
+          this.renderIcon(entity),
+          entity.name,
+          entity.source,
+          entity.labels.map((label) => <Badge key={label} label={label} title={label} />),
+          { title: entity.phase, className: cssNames(css[entity.phase]) }
         ]}
-        onDetails={(item: CatalogEntityItem) => this.onDetails(item) }
+        onDetails={entity => this.onDetails(entity) }
         renderItemMenu={this.renderItemMenu}
       />
     );
@@ -247,13 +247,13 @@ export class Catalog extends React.Component<Props> {
         store={this.catalogEntityStore}
         tableId="catalog-items"
         sortingCallbacks={{
-          [sortBy.name]: (item: CatalogEntityItem) => item.name,
-          [sortBy.kind]: (item: CatalogEntityItem) => item.kind,
-          [sortBy.source]: (item: CatalogEntityItem) => item.source,
-          [sortBy.status]: (item: CatalogEntityItem) => item.phase,
+          [sortBy.name]: entity => entity.name,
+          [sortBy.kind]: entity => entity.kind,
+          [sortBy.source]: entity => entity.source,
+          [sortBy.status]: entity => entity.phase,
         }}
         searchFilters={[
-          (entity: CatalogEntityItem) => entity.searchFields,
+          entity => entity.searchFields,
         ]}
         renderTableHeader={[
           { title: "", className: css.iconCell },
@@ -263,16 +263,16 @@ export class Catalog extends React.Component<Props> {
           { title: "Labels", className: css.labelsCell },
           { title: "Status", className: css.statusCell, sortBy: sortBy.status },
         ]}
-        renderTableContents={(item: CatalogEntityItem) => [
-          this.renderIcon(item),
-          item.name,
-          item.kind,
-          item.source,
-          item.labels.map((label) => <Badge key={label} label={label} title={label} />),
-          { title: item.phase, className: cssNames(css[item.phase]) }
+        renderTableContents={entity => [
+          this.renderIcon(entity),
+          entity.name,
+          entity.kind,
+          entity.source,
+          entity.labels.map((label) => <Badge key={label} label={label} title={label} />),
+          { title: entity.phase, className: cssNames(css[entity.phase]) }
         ]}
         detailsItem={this.selectedItem}
-        onDetails={(item: CatalogEntityItem) => this.onDetails(item) }
+        onDetails={entity => this.onDetails(entity) }
         renderItemMenu={this.renderItemMenu}
       />
     );
