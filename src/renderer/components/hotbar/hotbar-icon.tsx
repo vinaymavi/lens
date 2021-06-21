@@ -29,8 +29,7 @@ import { ConfirmDialog } from "../confirm-dialog";
 import { Menu, MenuItem } from "../menu";
 import { MaterialTooltip } from "../material-tooltip/material-tooltip";
 import { observer } from "mobx-react";
-import { Avatar } from "../avatar/avatar";
-import { Icon } from "../icon";
+import { EntityIcon } from "../entity-icon";
 
 export interface HotbarIconProps extends DOMAttributes<HTMLElement> {
   uid: string;
@@ -73,32 +72,24 @@ export const HotbarIcon = observer(({menuItems = [], size = 40, ...props}: Hotba
     setMenuOpen(!menuOpen);
   };
 
-  const renderIcon = () => {
-    return (
-      <Avatar
-        {...rest}
-        title={title}
-        colorHash={`${title}-${source}`}
-        className={active ? "active" : "default"}
-        width={size}
-        height={size}
-        src={src}
-        onClick={(event) => {
-          if (!disabled) {
-            onClick?.(event);
-          }
-        }}
-      >
-        {material && <Icon className="materialIcon" material={material}/>}
-      </Avatar>
-    );
-  };
-
   return (
     <div className={cssNames("HotbarIcon flex", className, { disabled })}>
       <MaterialTooltip title={`${title || "unknown"} (${source || "unknown"})`} placement="right">
         <div id={id}>
-          {renderIcon()}
+          <EntityIcon
+            title={title}
+            size={size}
+            active={active}
+            src={src}
+            source={source}
+            material={material}
+            onClick={event => {
+              if (!disabled) {
+                onClick?.(event);
+              }
+            }}
+            {...rest}
+          />
           {children}
         </div>
       </MaterialTooltip>

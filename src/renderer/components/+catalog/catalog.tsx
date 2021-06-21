@@ -28,7 +28,7 @@ import { action, makeObservable, observable, reaction, when } from "mobx";
 import { CatalogEntityItem, CatalogEntityStore } from "./catalog-entity.store";
 import { navigate } from "../../navigation";
 import { MenuItem, MenuActions } from "../menu";
-import type { CatalogEntityContextMenu, CatalogEntityContextMenuContext } from "../../api/catalog-entity";
+import { CatalogEntityContextMenu, CatalogEntityContextMenuContext, catalogEntityRunContext } from "../../api/catalog-entity";
 import { HotbarStore } from "../../../common/hotbar-store";
 import { ConfirmDialog } from "../confirm-dialog";
 import { catalogCategoryRegistry, CatalogEntity } from "../../../common/catalog";
@@ -41,7 +41,7 @@ import { makeCss } from "../../../common/utils/makeCss";
 import { CatalogEntityDetails } from "./catalog-entity-details";
 import { catalogURL, CatalogViewRouteParam } from "../../../common/routes";
 import { CatalogMenu } from "./catalog-menu";
-import { HotbarIcon } from "../hotbar/hotbar-icon";
+import { EntityIcon } from "../entity-icon";
 
 enum sortBy {
   name = "name",
@@ -165,14 +165,14 @@ export class Catalog extends React.Component<Props> {
 
   renderIcon(item: CatalogEntityItem<CatalogEntity>) {
     return (
-      <HotbarIcon
-        uid={item.getId()}
+      <EntityIcon
         title={item.getName()}
         source={item.source}
         src={item.entity.spec.icon?.src}
         material={item.entity.spec.icon?.material}
         background={item.entity.spec.icon?.background}
-        onClick={() => this.onDetails(item)}
+        onClick={() => item.onRun(catalogEntityRunContext)}
+        hoverWidth="1.5px"
         size={24}
       />
     );
@@ -280,8 +280,8 @@ export class Catalog extends React.Component<Props> {
               item={this.catalogEntityStore.selectedItem}
               hideDetails={() => this.catalogEntityStore.selectedItemId = null}
             />
-            : <CatalogAddButton 
-              category={this.catalogEntityStore.activeCategory} 
+            : <CatalogAddButton
+              category={this.catalogEntityStore.activeCategory}
             />
         }
       </MainLayout>
